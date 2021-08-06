@@ -10,7 +10,7 @@ Update users in `conf.yaml` file, add the user to one of three groups, they all 
 groups:
   - admin:
     users:
-      - email: admin@example.com (
+      - email: admin@example.com
         first_name: Zack
         last_name: Yo
     scopes: []
