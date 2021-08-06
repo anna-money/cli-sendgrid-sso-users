@@ -10,15 +10,22 @@ Update users in `conf.yaml` file, add the user to one of three groups, they all 
 groups:
   - admin:
     users:
-      - email: admin@example.com (required)
-        first_name: Zack (required)
-        last_name: Yo (required)
+      - email: admin@example.com (
+        first_name: Zack
+        last_name: Yo
+    scopes: []
   - developer:
     users:
-    - email: developer@example.com (required)
-      first_name: Nik (required)
-      last_name: Nilson (required)
+      - email: developer@example.com
+        first_name: Nik
+        last_name: Nilson
+    scopes: []
   - support:
+    users:
+      - email: support@example.com
+        first_name: Vladimir
+        last_name: Nikolaev
+    scopes: []
 ```
 
 ##### Build
