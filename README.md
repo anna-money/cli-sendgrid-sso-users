@@ -59,17 +59,8 @@ See help:
 ```
 
 ### Access scopes:
-due to the fact that SendGrid does not support groups, you have to manage separate scopes:
-1. admin group (access to all scopes)
-2. developers group (predefine group scope from SendGrid)
-3. support group (predefine group scope from SendGrid) + scopes:
-    ```bash
-    asm.groups.suppressions.create
-    asm.groups.suppressions.read
-    asm.groups.suppressions.update
-    asm.groups.suppressions.delete
-    asm.suppressions.global.create
-    asm.suppressions.global.read
-    asm.suppressions.global.update
-    asm.suppressions.global.delete
-    ```
+Due to the fact that SendGrid does not support groups, you have to manage separate scopes.
+You must grant the necessary permissions to each group, all available scopes are in the file `config/users.yaml`
+1. admin group (access to all scopes);
+2. developers group;
+3. support group.
