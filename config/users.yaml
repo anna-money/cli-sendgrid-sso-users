@@ -1,0 +1,17 @@
+---
+groups:
+  - admin:
+    users:
+      - email: admin@example.com
+        first_name: Zack
+        last_name: Yo
+  - developer:
+    users:
+      - email: developer@example.com
+        first_name: Nik
+        last_name: Nilson
+  - support:
+    users:
+      - email: support@example.com
+        first_name: Vladimir
+        last_name: Nikolaev
