@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	updateUsersFlag, createUsersFlag, allUsersFlag, usersWithoutSSOflag bool
+	updateUsersFlag, createUsersFlag, allUsersFlag, usersWithoutSSOFlag bool
 	configPath, sendgridToken                                           string
 )
 
@@ -78,9 +78,9 @@ type (
 )
 
 func (c *YamlConfig) getConf() *YamlConfig {
-	yamlFile, err := ioutil.ReadFile("config/users.yaml")
+	yamlFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		logger.Fatalf("get config/users.yaml error: #%v ", err)
+		logger.Fatalf("get %s error: #%v ", configPath, err)
 	}
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
@@ -179,7 +179,7 @@ func GetAllTeammates() {
 }
 
 func validateArguments() error {
-	if createUsersFlag == false && updateUsersFlag == false && usersWithoutSSOflag == false && allUsersFlag == false {
+	if createUsersFlag == false && updateUsersFlag == false && usersWithoutSSOFlag == false && allUsersFlag == false {
 		return fmt.Errorf("need to choose one or both actions, use flags (--create/-c,--update/-u or --get-all/-a,--get-all-no-sso/-s)")
 	}
 
@@ -199,7 +199,7 @@ func main() {
 	pflag.BoolVarP(&createUsersFlag, "create", "c", false, "Create all users")
 	pflag.BoolVarP(&updateUsersFlag, "update", "u", false, "Update all users")
 	pflag.BoolVarP(&allUsersFlag, "get-all", "a", false, "Get all users")
-	pflag.BoolVarP(&usersWithoutSSOflag, "get-all-no-sso", "n", false, "Get all no SSO users")
+	pflag.BoolVarP(&usersWithoutSSOFlag, "get-all-no-sso", "n", false, "Get all no SSO users")
 	pflag.Parse()
 
 	if err := validateArguments(); err != nil {
@@ -209,7 +209,7 @@ func main() {
 	var c YamlConfig
 	c.getConf()
 
-	if usersWithoutSSOflag {
+	if usersWithoutSSOFlag {
 		GetAllTeammatesWithoutSSO()
 	}
 
