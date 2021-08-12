@@ -80,7 +80,7 @@ type (
 func (c *YamlConfig) getConf() *YamlConfig {
 	yamlFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		logger.Fatalf("get config/users.yaml error: #%v ", err)
+		logger.Fatalf("get %s error: #%v ", configPath, err)
 	}
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
