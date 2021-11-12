@@ -90,9 +90,7 @@ func (c *YamlConfig) getConf() *YamlConfig {
 }
 
 func CreateTeammatesSSO(firstName string, lastName string, email string, isAdmin bool, scopes []string, group string) {
-	apiKey := os.Getenv("SENDGRID_API_KEY")
-	host := sendgridAPIHost
-	request := sendgrid.GetRequest(apiKey, "/v3/sso/teammates", host)
+	request := sendgrid.GetRequest(sendgridToken, "/v3/sso/teammates", sendgridAPIHost)
 	request.Method = "POST"
 	m := ResponseCreateUserSSO{firstName, lastName, email, isAdmin, scopes}
 	b, _ := json.Marshal(m)
@@ -112,9 +110,7 @@ func CreateTeammatesSSO(firstName string, lastName string, email string, isAdmin
 }
 
 func UpdateTeammatesSSO(firstName string, lastName string, email string, isAdmin bool, scopes []string, group string) {
-	apiKey := os.Getenv("SENDGRID_API_KEY")
-	host := sendgridAPIHost
-	request := sendgrid.GetRequest(apiKey, "/v3/sso/teammates/"+email, host)
+	request := sendgrid.GetRequest(sendgridToken, "/v3/sso/teammates/"+email, sendgridAPIHost)
 	request.Method = "PATCH"
 	m := ResponseUpdateUserSSO{firstName, lastName, isAdmin, scopes}
 	b, _ := json.Marshal(m)
@@ -131,14 +127,16 @@ func UpdateTeammatesSSO(firstName string, lastName string, email string, isAdmin
 	}
 }
 
-func GetAllTeammatesWithoutSSO() {
-	apiKey := os.Getenv("SENDGRID_API_KEY")
+func GetAllTeammatesWithoutSSO() error {
 	host := sendgridAPIHost
-	request := sendgrid.GetRequest(apiKey, "/v3/teammates?limit=100", host)
+	request := sendgrid.GetRequest(sendgridToken, "/v3/teammates?limit=100", host)
 	request.Method = "GET"
 	response, err := sendgrid.API(request)
 	if err != nil {
-		logger.Fatalf("error send request to sendgrid api: %v", err)
+		return fmt.Errorf("send request to sendgrid api: %v", err)
+	}
+	if response.StatusCode != 200 {
+		return fmt.Errorf("status code: %d", response.StatusCode)
 	}
 	m := []byte(response.Body)
 	r := bytes.NewReader(m)
@@ -146,23 +144,27 @@ func GetAllTeammatesWithoutSSO() {
 	users := &ResponseGetAllTeammatesWithoutSSO{}
 	err = decoder.Decode(users)
 	if err != nil {
-		logger.Fatalf("error: %v", err)
+		return fmt.Errorf("%v", err)
 	}
 	for _, u := range users.Result {
 		if u.IsSso == false {
 			logger.Infof("username %s", u.Username)
 		}
 	}
+
+	return nil
 }
 
-func GetAllTeammates() {
-	apiKey := os.Getenv("SENDGRID_API_KEY")
+func GetAllTeammates() error {
 	host := sendgridAPIHost
-	request := sendgrid.GetRequest(apiKey, "/v3/teammates?limit=200", host)
+	request := sendgrid.GetRequest(sendgridToken, "/v3/teammates?limit=200", host)
 	request.Method = "GET"
 	response, err := sendgrid.API(request)
 	if err != nil {
-		logger.Fatalf("error send request to sendgrid api: %v", err)
+		return fmt.Errorf("send request to sendgrid api: %v", err)
+	}
+	if response.StatusCode != 200 {
+		return fmt.Errorf("status code: %d", response.StatusCode)
 	}
 	m := []byte(response.Body)
 	r := bytes.NewReader(m)
@@ -171,11 +173,12 @@ func GetAllTeammates() {
 	err = decoder.Decode(users)
 
 	if err != nil {
-		logger.Fatalf("error: %v", err)
+		return fmt.Errorf("%v", err)
 	}
 	for _, u := range users.Result {
 		logger.Infof("username %s", u.Username)
 	}
+	return nil
 }
 
 func validateArguments() error {
@@ -186,7 +189,19 @@ func validateArguments() error {
 	if configPath == "" {
 		return fmt.Errorf("--config-path should not be empty")
 	}
+	return nil
+}
 
+func validateSendgridToken() error {
+	request := sendgrid.GetRequest(sendgridToken, "/v3/templates", sendgridAPIHost)
+	request.Method = "GET"
+	response, err := sendgrid.API(request)
+	if err != nil {
+		return fmt.Errorf("error send request to sendgrid api: %v", err)
+	}
+	if response.StatusCode != 200 {
+		return fmt.Errorf("status code: %d", response.StatusCode)
+	}
 	return nil
 }
 
@@ -202,6 +217,10 @@ func main() {
 	pflag.BoolVarP(&usersWithoutSSOFlag, "get-all-no-sso", "n", false, "Get all no SSO users")
 	pflag.Parse()
 
+	if err := validateSendgridToken(); err != nil {
+		logger.Fatalf("Auth error: %s", err.Error())
+	}
+
 	if err := validateArguments(); err != nil {
 		logger.Fatalf("Validation arguments error: %s", err.Error())
 	}
@@ -210,11 +229,15 @@ func main() {
 	c.getConf()
 
 	if usersWithoutSSOFlag {
-		GetAllTeammatesWithoutSSO()
+		if err := GetAllTeammatesWithoutSSO(); err != nil {
+			logger.Fatalf("Error: %s", err.Error())
+		}
 	}
 
 	if allUsersFlag {
-		GetAllTeammates()
+		if err := GetAllTeammates(); err != nil {
+			logger.Fatalf("Error: %s", err.Error())
+		}
 	}
 
 	if createUsersFlag {
